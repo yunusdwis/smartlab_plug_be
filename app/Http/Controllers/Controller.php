@@ -8,7 +8,7 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
-    private $server = '192.168.100.215';
+    private $server = 'mqtt.boothlab.id';
     private $port   = 1883;
     private $clientId;
     private $mqtt;
