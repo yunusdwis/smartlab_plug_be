@@ -40,14 +40,14 @@ class Controller extends BaseController
     // Trigger WiFi config portal on ESP
     public function startWifiConfig()
     {
-        return $this->publishMessage('wifi_config', 'WiFi config portal triggered');
+        return $this->publishMessage('wificonfig', 'WiFi config portal triggered');
     }
 
     // Helper method
     private function publishMessage($message, $successText)
     {
         try {
-            $this->mqtt->publish('home/led/control', $message, 0);
+            $this->mqtt->publish('socket/test_code', $message, 0); // change test code with activation code
         } catch (MqttClientException $e) {
             return response()->json(['status' => 'Failed', 'error' => $e->getMessage()]);
         }
