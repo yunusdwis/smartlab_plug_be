@@ -26,15 +26,15 @@ class Controller extends BaseController
     }
 
     // Turn LED on
-    public function turnOn()
+    public function turnOn(Request $request)
     {
-        return $this->publishMessage('on', 'LED turned on');
+        return $this->publishMessage('on', 'LED turned on', $request->activation_code);
     }
 
     // Turn LED off
-    public function turnOff()
+    public function turnOff(Request $request)
     {
-        return $this->publishMessage('off', 'LED turned off');
+        return $this->publishMessage('off', 'LED turned off', $request->activation_code);
     }
 
     // Trigger WiFi config portal on ESP
@@ -44,10 +44,10 @@ class Controller extends BaseController
     }
 
     // Helper method
-    private function publishMessage($message, $successText)
+    private function publishMessage($message, $successText, $activation_code)
     {
         try {
-            $this->mqtt->publish('socket/test_code', $message, 0); // change test code with activation code
+            $this->mqtt->publish(`socket/${activation_code}`, $message, 0); // change test code with activation code
         } catch (MqttClientException $e) {
             return response()->json(['status' => 'Failed', 'error' => $e->getMessage()]);
         }
