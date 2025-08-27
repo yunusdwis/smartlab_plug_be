@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\Exceptions\MqttClientException;
 use Laravel\Lumen\Routing\Controller as BaseController;
