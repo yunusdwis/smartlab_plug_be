@@ -8,6 +8,7 @@ $router->post('/login', 'AuthController@login');
 $router->group(['middleware' => 'authToken'], function () use ($router) {
   $router->post('/socket/on', 'Controller@turnOn');
   $router->post('/socket/off', 'Controller@turnOff');
-  $router->get('/config_wifi', 'Controller@startWifiConfig');
+  $router->post('/socket/schedule', 'Controller@schedule');
+  $router->post('/config_wifi', 'Controller@startWifiConfig');
   $router->post('/logout', 'AuthController@logout');
 });

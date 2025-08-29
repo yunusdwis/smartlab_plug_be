@@ -38,6 +38,19 @@ class Controller extends BaseController
         return $this->publishMessage('off', 'LED turned off', $request->activation_code);
     }
 
+    // Schedule Socket
+    public function schedule(Request $request){
+        // Get the whole JSON body as string
+        $scheduleJson = $request->getContent(); 
+
+        return $this->publishMessage(
+            $scheduleJson,
+            'Schedule updated',
+            $request->activation_code,
+            true // flag as schedule
+        );
+    }
+
     // Trigger WiFi config portal on ESP
     public function startWifiConfig(Request $request)
     {
@@ -45,10 +58,13 @@ class Controller extends BaseController
     }
 
     // Helper method
-    private function publishMessage($message, $successText, $activation_code)
-    {
+    private function publishMessage($message, $successText, $activation_code, $isSchedule = false){
+        $topic = $isSchedule 
+            ? "socket/$activation_code/schedule"
+            : "socket/$activation_code";
+
         try {
-            $this->mqtt->publish("socket/$activation_code", $message, 0); // change test code with activation code
+            $this->mqtt->publish($topic, $message, 0);
         } catch (MqttClientException $e) {
             return response()->json(['status' => 'Failed', 'error' => $e->getMessage()]);
         }
