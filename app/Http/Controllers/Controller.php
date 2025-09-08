@@ -26,6 +26,30 @@ class Controller extends BaseController
         }
     }
 
+    public function getStatus(Request $request)
+    {
+        $path = "devices/{$request->activation_code}.json";
+
+        if (!Storage::exists($path)) {
+            return response()->json(['error' => 'Device not found'], 404);
+        }
+
+        $data = json_decode(Storage::get($path), true);
+        return response()->json($data);
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $payload = [
+            'status' => $request->input('status'), 
+            'schedules' => $request->input('schedules', []),
+            'updated_at' => now()->toDateTimeString()
+        ];
+
+        Storage::put("devices/{$request->activation_code}.json", json_encode($payload));
+        return response()->json(['success' => true]);
+    }
+
     // Turn LED on
     public function turnOn(Request $request)
     {
