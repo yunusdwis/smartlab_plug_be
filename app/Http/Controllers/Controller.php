@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use PhpMqtt\Client\MqttClient;
-use Illuminate\Support\Facades\Storage;
+// use Illuminate\Support\Facades\Storage;
 use PhpMqtt\Client\Exceptions\MqttClientException;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -30,27 +30,33 @@ class Controller extends BaseController
     //get esp status
     public function getStatus(Request $request)
     {
-        $path = "devices/{$request->activation_code}.json";
+        $activationCode = $request->activation_code;
+        $topic = "socket/$activationCode/status";
+        $response = null;
 
-        if (!Storage::exists($path)) {
-            return response()->json(['error' => 'Device not found'], 404);
+        try {
+            $this->mqtt->subscribe($topic, function (string $topic, string $message) use (&$response) {
+                $response = json_decode($message, true);
+            });
+
+            // Ask ESP for status
+            $this->mqtt->publish("socket/$activationCode/get_status", "get_status");
+
+            // Wait a bit for ESP to respond (e.g. max 2s)
+            $timeout = microtime(true) + 2;
+            while ($response === null && microtime(true) < $timeout) {
+                $this->mqtt->loop(true);
+            }
+
+            if ($response === null) {
+                return response()->json(['error' => 'No response from device'], 504);
+            }
+
+            return response()->json($response);
+
+        } catch (MqttClientException $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $data = json_decode(Storage::get($path), true);
-        return response()->json($data);
-    }
-
-    //esp update status
-    public function updateStatus(Request $request)
-    {
-        $payload = [
-            'status' => $request->input('status'), 
-            'schedules' => $request->input('schedules', []),
-            'updated_at' => now()->toDateTimeString()
-        ];
-
-        Storage::put("devices/{$request->activation_code}.json", json_encode($payload));
-        return response()->json(['success' => true]);
     }
 
     // Turn LED on

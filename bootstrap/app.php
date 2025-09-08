@@ -23,15 +23,9 @@ $app = new Laravel\Lumen\Application(
     dirname(__DIR__)
 );
 
-$app->configure('filesystems');
-
 $app->withFacades();
 
 $app->withEloquent();
-
-$app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
-
-class_alias(Illuminate\Support\Facades\Storage::class, 'Storage');
 
 /*
 |--------------------------------------------------------------------------
