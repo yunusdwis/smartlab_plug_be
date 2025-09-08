@@ -29,6 +29,10 @@ $app->withFacades();
 
 $app->withEloquent();
 
+$app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
+
+class_alias(Illuminate\Support\Facades\Storage::class, 'Storage');
+
 /*
 |--------------------------------------------------------------------------
 | Register Container Bindings

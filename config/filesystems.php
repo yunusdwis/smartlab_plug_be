@@ -1,9 +1,5 @@
 <?php
 
-use League\Flysystem\Local\LocalFilesystemAdapter;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Filesystem\FilesystemManager;
-
 return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
