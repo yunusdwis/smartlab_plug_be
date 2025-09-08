@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use PhpMqtt\Client\MqttClient;
+use Illuminate\Support\Facades\Storage;
 use PhpMqtt\Client\Exceptions\MqttClientException;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -26,6 +27,7 @@ class Controller extends BaseController
         }
     }
 
+    //get esp status
     public function getStatus(Request $request)
     {
         $path = "devices/{$request->activation_code}.json";
@@ -38,6 +40,7 @@ class Controller extends BaseController
         return response()->json($data);
     }
 
+    //esp update status
     public function updateStatus(Request $request)
     {
         $payload = [
