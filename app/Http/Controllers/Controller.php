@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Device;
 use Illuminate\Http\Request;
 use PhpMqtt\Client\MqttClient;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Validator;
 use PhpMqtt\Client\Exceptions\MqttClientException;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -30,45 +32,51 @@ class Controller extends BaseController
         return $mqtt;
     }
 
-    // 🔹 Get ESP status
-    private static $pendingResponses = []; // in-memory storage
-
-    public function getStatus($activationCode)
-    {
-        $requestId = uniqid();
-        self::$pendingResponses[$requestId] = null;
-
-        // Publish MQTT request
-        $mqtt->publish("socket/$activationCode/get_status", json_encode([
-            'request_id' => $requestId
-        ]));
-
-        $start = time();
-        $timeout = 3; // 3 seconds
-        while ((time() - $start) < $timeout) {
-            if (self::$pendingResponses[$requestId]) {
-                $status = self::$pendingResponses[$requestId];
-                unset(self::$pendingResponses[$requestId]);
-                return response()->json($status);
-            }
-            usleep(100_000); // sleep 0.1s to reduce CPU usage
+    public function getStatus(Request $request){
+        $data = Device::where('activation_code', $request->activation_code)->first();
+        if(!$data){
+            return response()->json([
+                'message' => 'activation code is wrong'
+            ], 404);
         }
-
-        unset(self::$pendingResponses[$requestId]);
-        return response()->json(['error' => 'ESP did not respond in time'], 504);
+        return response()->json($data);
     }
 
-    public function callback(Request $request)
+    public function updateStatus(Request $request)
     {
-        $requestId = $request->input('request_id');
-        $status = $request->input('status');
+         $validator = Validator::make($request->all(), [
+            'activation_code' => 'required|string',
+            'status' => 'required|string',
+        ]);
 
-        if (isset(self::$pendingResponses[$requestId])) {
-            self::$pendingResponses[$requestId] = $status;
-            return response()->json(['ok' => true]);
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        return response()->json(['error' => 'Unknown request_id'], 400);
+        $device = Device::where('activation_code', $request->activation_code)->first();
+
+        if (!$device) {
+            $device = Device::create([
+                'activation_code' => $request->activation_code,
+                'status' => $request->status,
+                'schedule' => $request->schedule ?? [],
+            ]);
+        } else {
+            $device->status = $request->status;
+
+            if ($request->has('schedule')) {
+                $device->schedule = $request->schedule; 
+            }
+
+            $device->save();
+        }
+
+        return response()->json([
+            'message' => 'Device saved successfully',
+            'device' => $device,
+        ]);
     }
 
     // 🔹 Turn LED on

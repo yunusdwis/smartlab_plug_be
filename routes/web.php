@@ -12,5 +12,5 @@ $router->group(['middleware' => 'authToken'], function () use ($router) {
   $router->post('/config_wifi', 'Controller@startWifiConfig');
   $router->post('/logout', 'AuthController@logout');
   $router->get('/socket/status', 'Controller@getStatus');
-  $router->post('/status_callback', 'Controller@callback');
+  $router->post('/update', 'Controller@updateStatus');
 });
